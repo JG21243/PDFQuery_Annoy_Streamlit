@@ -1,7 +1,7 @@
 
-# ADD/ADHD Project Manager App
+# Project Manager App
 
-This is a Streamlit application that uses OpenAI's GPT-3 to generate a schedule and prioritize tasks for individuals with ADD/ADHD.
+This is a Streamlit application that uses OpenAI's GPT-3 to assist users in generating a schedule and prioritizing tasks.
 
 ## Getting Started
 
