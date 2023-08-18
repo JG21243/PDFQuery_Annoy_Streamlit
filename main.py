@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import openai
 from datetime import datetime
-from streamlit_calendar import Calendar
+from streamlit_fullcalendar import FullCalendar
 
 # Constants
 VALID_DATE_FORMAT = "%Y-%m-%d"
@@ -101,7 +101,7 @@ def main():
                     events.append({"title": event_name, "start": event_date})
 
                 # Display the calendar with the events
-                st.write(Calendar(events=events, view="dayGridMonth", theme="light"))
+                st.write(FullCalendar(events=events))
 
             else:
                 st.error(f"An error occurred: {error}")
