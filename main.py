@@ -89,7 +89,12 @@ def main():
             schedule, error = generate_schedule(activities, api_key)
             if schedule:
                 st.success("Here's your structured schedule:")
-                st.write(schedule)
+                
+                # Format the schedule output
+                schedule_lines = schedule.split('\n')
+                for line in schedule_lines:
+                    st.markdown(f"**{line}**")
+                    st.write("---")
             else:
                 st.error(f"An error occurred: {error}")
 
