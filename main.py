@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import openai
 from datetime import datetime
+from streamlit_calendar import Calendar
 
 # Constants
 VALID_DATE_FORMAT = "%Y-%m-%d"
@@ -89,12 +90,19 @@ def main():
             schedule, error = generate_schedule(activities, api_key)
             if schedule:
                 st.success("Here's your structured schedule:")
-                
+
                 # Format the schedule output
                 schedule_lines = schedule.split('\n')
+                events = []
                 for line in schedule_lines:
-                    st.markdown(f"**{line}**")
-                    st.write("---")
+                    # Parse the schedule line to extract the event information
+                    # You may need to adjust the parsing logic based on the format of your schedule
+                    event_name, event_date = line.split(" - ")[0], line.split(" - ")[1]
+                    events.append({"title": event_name, "start": event_date})
+
+                # Display the calendar with the events
+                st.write(Calendar(events=events, view="dayGridMonth", theme="light"))
+
             else:
                 st.error(f"An error occurred: {error}")
 
