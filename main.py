@@ -6,11 +6,6 @@ from datetime import datetime
 # Constants
 VALID_DATE_FORMAT = "%Y-%m-%d"
 
-@st.cache
-def get_api_key():
-    api_key = os.getenv('OPENAI_KEY')
-    return api_key
-
 def validate_input(activity, date, time, importance):
     errors = []
     if not activity:
@@ -49,10 +44,10 @@ def generate_schedule(activities, api_key):
                 "content": input_text
             }
         ],
-        max_tokens=1050,
+        max_tokens=150,
         n=1,
         stop=None,
-        temperature=0.1,
+        temperature=0.5,
     )
 
     # Extract the generated schedule
@@ -71,9 +66,7 @@ def main():
     time = st.number_input("Estimated Time (in hours)", min_value=0.0, step=0.5)
     importance = st.slider("Importance (a number between 1 to 5)", min_value=1, max_value=5)
 
-    api_key = get_api_key()
-    if not api_key:
-        st.warning("Please set your OpenAI API Key as an environment variable.")
+    api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 
     activities = st.session_state.get("activities", [])
 
@@ -89,7 +82,7 @@ def main():
 
     if st.button("Generate Schedule"):
         if not api_key:
-            st.error("No OpenAI API Key found. Please set your OpenAI API Key as an environment variable.")
+            st.error("No OpenAI API Key found. Please enter your OpenAI API Key in the sidebar.")
         elif not activities:
             st.warning("No activities added yet. Please add some activities first.")
         else:
