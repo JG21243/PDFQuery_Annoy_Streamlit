@@ -51,7 +51,7 @@ def generate_schedule(activities, api_key):
     )
 
     # Extract the generated schedule
-    schedule = response.choices[0].text.strip()
+    schedule = response.choices[0].message['content'].strip()
 
     return schedule, None
 
