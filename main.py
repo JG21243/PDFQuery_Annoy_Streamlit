@@ -15,10 +15,8 @@ def get_api_key():
 
 def validate_input(activity, date, time, importance):
     errors = []
-    try:
-        datetime.strptime(date, VALID_DATE_FORMAT)
-    except ValueError:
-        errors.append(f"Unable to parse date: {date}. Please use format YYYY-MM-DD.")
+    if not activity:
+        errors.append("Activity name cannot be empty.")
     try:
         float(time)
     except ValueError:
@@ -31,16 +29,38 @@ def validate_input(activity, date, time, importance):
         errors.append(f"Unable to parse importance: {importance}. Please input a number.")
     return not errors, errors
 
-@st.cache
 def generate_schedule(activities, api_key):
-    inputs = "\n".join(", ".join(map(str, activity)) for activity in activities)
-    prompt = f"Given the following activities with deadlines, estimated time, and importance:\n{inputs}\nOutput a structured schedule and priority list."
-    try:
-        openai.api_key = api_key
-        response = openai.Completion.create(engine="text-davinci-002", prompt=prompt, max_tokens=150, temperature=0.5)
-        return response.choices[0].text.strip(), None
-    except openai.error.OpenAIError as e:
-        return None, str(e)
+    openai.api_key = api_key
+
+    # Prepare the input for GPT-3.5-turbo
+    input_text = "Generate a schedule for the following activities, prioritizing tasks based on their importance and deadline:\n"
+    for act in activities:
+        formatted_date = act[1].strftime(VALID_DATE_FORMAT)
+        input_text += f"{act[0]} - Deadline: {formatted_date} - Time: {act[2]} hours - Importance: {act[3]}\n"
+
+    # Call the GPT-3.5-turbo API
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": input_text
+            }
+        ],
+        max_tokens=150,
+        n=1,
+        stop=None,
+        temperature=0.5,
+    )
+
+    # Extract the generated schedule
+    schedule = response.choices[0].text.strip()
+
+    return schedule, None
 
 def main():
     st.title("ADD/ADHD Project Manager App")
@@ -58,9 +78,9 @@ def main():
     activities = st.session_state.get("activities", [])
 
     if st.button("Add Activity"):
-        is_valid, errors = validate_input(activity, date.strftime(VALID_DATE_FORMAT), time, importance)
+        is_valid, errors = validate_input(activity, date, time, importance)
         if is_valid:
-            activities.append((activity, date.strftime(VALID_DATE_FORMAT), time, importance))
+            activities.append((activity, date, time, importance))
             st.session_state.activities = activities
             st.success("Activity added successfully!")
         else:
