@@ -9,8 +9,6 @@ VALID_DATE_FORMAT = "%Y-%m-%d"
 @st.cache
 def get_api_key():
     api_key = os.getenv('OPENAI_KEY')
-    if not api_key:
-        st.warning("Please set your OpenAI API Key as an environment variable.")
     return api_key
 
 def validate_input(activity, date, time, importance):
@@ -51,10 +49,10 @@ def generate_schedule(activities, api_key):
                 "content": input_text
             }
         ],
-        max_tokens=150,
+        max_tokens=1050,
         n=1,
         stop=None,
-        temperature=0.5,
+        temperature=0.1,
     )
 
     # Extract the generated schedule
@@ -74,6 +72,8 @@ def main():
     importance = st.slider("Importance (a number between 1 to 5)", min_value=1, max_value=5)
 
     api_key = get_api_key()
+    if not api_key:
+        st.warning("Please set your OpenAI API Key as an environment variable.")
 
     activities = st.session_state.get("activities", [])
 
