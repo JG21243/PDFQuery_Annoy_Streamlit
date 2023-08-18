@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import openai
 from datetime import datetime
-from streamlit_fullcalendar import FullCalendar
+from streamlit_aggrid import AgGrid
 
 # Constants
 VALID_DATE_FORMAT = "%Y-%m-%d"
@@ -100,8 +100,8 @@ def main():
                     event_name, event_date = line.split(" - ")[0], line.split(" - ")[1]
                     events.append({"title": event_name, "start": event_date})
 
-                # Display the calendar with the events
-                st.write(FullCalendar(events=events))
+                # Display the schedule using the AgGrid component
+                AgGrid(events)
 
             else:
                 st.error(f"An error occurred: {error}")
