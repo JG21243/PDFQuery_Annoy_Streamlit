@@ -44,10 +44,10 @@ def generate_schedule(activities, api_key):
                 "content": input_text
             }
         ],
-        max_tokens=150,
+        max_tokens=1500,
         n=1,
         stop=None,
-        temperature=0.5,
+        temperature=0.1,
     )
 
     # Extract the generated schedule
@@ -56,7 +56,7 @@ def generate_schedule(activities, api_key):
     return schedule, None
 
 def main():
-    st.title("ADD/ADHD Project Manager App")
+    st.title("Project Manager App")
     st.markdown("Welcome! This app will help you organize your tasks and activities.")
     
     st.markdown("Please enter your activity details below:")
