@@ -1,22 +1,22 @@
 import os
 import openai
-import pdfplumber
 import streamlit as st
 from annoy import AnnoyIndex
 import pytesseract
 from PIL import Image
+import fitz  # PyMuPDF
 
 def extract_text_from_pdf(file_obj, pages_per_chunk=8):
     try:
         text_chunks = []
-        pdf = pdfplumber.open(file_obj)
-        num_pages = len(pdf.pages)
+        pdf = fitz.open(stream=file_obj)
+        num_pages = pdf.page_count
         for i in range(0, num_pages, pages_per_chunk):
             text = []
             for j in range(i, min(i + pages_per_chunk, num_pages)):
-                page = pdf.pages[j]
-                image = page.to_image()
-                pil_image = Image.fromarray(image.to_pil())  # Corrected line
+                page = pdf.load_page(j)
+                pix = page.get_pixmap()
+                pil_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 ocr_text = pytesseract.image_to_string(pil_image)
                 text.append(ocr_text)
             text_chunks.append(' '.join(text))
