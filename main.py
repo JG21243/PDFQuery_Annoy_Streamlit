@@ -1,58 +1,130 @@
 import os
-import streamlit as st
 import openai
-from datetime import datetime
-from streamlit_echarts import st_echarts
+import pdfplumber
+import streamlit as st
+from annoy import AnnoyIndex
+import pytesseract
+from PIL import Image
 
-# ... (other code)
+def extract_text_from_pdf(file_obj, pages_per_chunk=8):
+    try:
+        text_chunks = []
+        pdf = pdfplumber.open(file_obj)
+        num_pages = len(pdf.pages)
+        for i in range(0, num_pages, pages_per_chunk):
+            text = []
+            for j in range(i, min(i + pages_per_chunk, num_pages)):
+                page = pdf.pages[j]
+                image = page.to_image()
+                pil_image = Image.fromarray(image.to_pil())  # Corrected line
+                ocr_text = pytesseract.image_to_string(pil_image)
+                text.append(ocr_text)
+            text_chunks.append(' '.join(text))
+        return text_chunks
+    except Exception as e:
+        print(f"Error opening PDF file: {e}")
+        return None
+
+def create_openai_embedding(text, max_words=700):
+    words = text.split()
+    chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
+    embeddings = []
+    for chunk in chunks:
+        openai.api_key = "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"
+        response = openai.Embedding.create(
+            model="text-embedding-ada-002",
+            input=chunk
+        )
+        embeddings.append(response["data"][0]["embedding"])
+    embedding = [sum(x) / len(x) for x in zip(*embeddings)]
+    return embedding
+
+def setup_annoy(dimension=1536):
+    index = AnnoyIndex(dimension, 'angular')
+    return index
+
+def upsert_to_annoy(index, vector_id, vector_values, text):
+    index.add_item(vector_id, vector_values)
+    text_storage[vector_id] = text
+    print(f"Upserted data to index with vector ID {vector_id}")
+
+def query_annoy(index, question_embedding, top_k=3):
+    try:
+        print(f"Querying index with question embedding {question_embedding}")
+        query_results = index.get_nns_by_vector(question_embedding, top_k, include_distances=True)
+        print(f"Query results: {query_results}")
+        return query_results
+    except Exception as e:
+        print(f"Error querying Annoy: {e}")
+        return {'results': []}
+
+def generate_answer(context_data, question):
+    openai.api_key = "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"
+    prompt = f"Context: {', '.join(context_data)}\nQuestion: {question}\nAnswer:"
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",  
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        max_tokens=3000,
+        n=1,
+        stop=None,
+        temperature=0.0,
+    )
+    
+    return response.choices[0].message['content'].strip()
+
+def interpret_answer(answer):
+    return answer
+
+def process_query_results(query_results):
+    results, scores = query_results
+    context_data = []
+    for i, result in enumerate(results):
+        context_data.append(f"{result}: {scores[i]} - {text_storage[result]}")
+    return context_data
 
 def main():
-    # ... (other code)
+    st.title('PDF Query Interface')
+    file = st.file_uploader("Upload a PDF Document")
+    user_question = st.text_input("Enter Your Question")
 
-    if st.button("Generate Schedule"):
-        if not api_key:
-            st.error("No OpenAI API Key found. Please enter your OpenAI API Key in the sidebar.")
-        elif not activities:
-            st.warning("No activities added yet. Please add some activities first.")
-        else:
-            schedule, error = generate_schedule(activities, api_key)
-            if schedule:
-                st.success("Here's your structured schedule:")
+    if file and user_question:
+        text_chunks = extract_text_from_pdf(file)
+        
+        if text_chunks is None:
+            st.error("An error occurred while reading the PDF file. Please try again with a different file.")
+            return
 
-                # Format the schedule output
-                schedule_lines = schedule.split('\n')
-                events = []
-                for line in schedule_lines:
-                    # Parse the schedule line to extract the event information
-                    # You may need to adjust the parsing logic based on the format of your schedule
-                    event_name, event_date = line.split(" - ")[0], line.split(" - ")[1]
-                    events.append({"title": event_name, "start": event_date})
+        index = setup_annoy()
 
-                # Display the calendar with the events
-                calendar_data = [
-                    {"value": [event["start"], 1]} for event in events
-                ]
-                calendar_option = {
-                    "visualMap": {
-                        "show": False,
-                        "min": 0,
-                        "max": 1
-                    },
-                    "calendar": {
-                        "range": "2023"
-                    },
-                    "series": {
-                        "type": "heatmap",
-                        "coordinateSystem": "calendar",
-                        "data": calendar_data
-                    }
-                }
-                st_echarts(options=calendar_option)
+        for i, text in enumerate(text_chunks):
+            if text:
+                response = create_openai_embedding(text)
+                print(f"OpenAI Response for chunk {i}: {response}")
 
-            else:
-                st.error(f"An error occurred: {error}")
+                vector_id = i
+                vector_values = response
+                upsert_to_annoy(index, vector_id, vector_values, text)
 
-    # ... (other code)
+        index.build(10)  # 10 trees
+
+        question = user_question
+        question_embedding = create_openai_embedding(question)
+        query_results = query_annoy(index, question_embedding)
+        context_data = process_query_results(query_results)
+        answer = generate_answer(context_data, question)
+        interpreted_answer = interpret_answer(answer)
+
+        st.text_area("Answer", interpreted_answer)
 
 if __name__ == "__main__":
     main()
