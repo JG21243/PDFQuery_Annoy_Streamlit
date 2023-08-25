@@ -26,7 +26,7 @@ def create_openai_embedding(text, max_words=700):
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
     for chunk in chunks:
-        openai.api_key = st.secrets["openai_api_key"]
+        openai_api_key = st.secrets["openai_api_key"]
         response = openai.Embedding.create(
             model="text-embedding-ada-002",
             input=chunk
@@ -55,7 +55,7 @@ def query_annoy(index, question_embedding, top_k=3):
         return {'results': []}
 
 def generate_answer(context_data, question):
-    openai.api_key = st.secrets["openai_api_key"]
+    openai_api_key = st.secrets["openai_api_key"]
     prompt = f"Context: {', '.join(context_data)}\nQuestion: {question}\nAnswer:"
     
     response = openai.ChatCompletion.create(
