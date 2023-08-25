@@ -16,7 +16,7 @@ def extract_text_from_pdf(file_obj, pages_per_chunk=8):
             for j in range(i, min(i + pages_per_chunk, num_pages)):
                 page = pdf.load_page(j)
                 pix = page.get_pixmap()
-                pil_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                pil_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples.tobytes())
                 ocr_text = pytesseract.image_to_string(pil_image)
                 text.append(ocr_text)
             text_chunks.append(' '.join(text))
