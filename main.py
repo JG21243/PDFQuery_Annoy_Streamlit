@@ -6,6 +6,8 @@ import pytesseract
 from PIL import Image
 import fitz  # PyMuPDF
 
+text_storage = {}  # Added line to define text_storage
+
 def extract_text_from_pdf(file_obj, pages_per_chunk=8):
     try:
         text_chunks = []
