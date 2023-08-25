@@ -2,8 +2,6 @@ import os
 import openai
 import streamlit as st
 from annoy import AnnoyIndex
-import pytesseract
-from PIL import Image
 import fitz  # PyMuPDF
 
 text_storage = {}  # Added line to define text_storage
@@ -17,9 +15,7 @@ def extract_text_from_pdf(file_obj, pages_per_chunk=8):
             text = []
             for j in range(i, min(i + pages_per_chunk, num_pages)):
                 page = pdf.load_page(j)
-                pix = page.get_pixmap()
-                pil_image = Image.frombuffer("RGB", [pix.width, pix.height], pix.samples, "raw", "RGB", 0, 1)
-                ocr_text = pytesseract.image_to_string(pil_image)
+                ocr_text = page.get_text()  # Extracting text without OCR
                 text.append(ocr_text)
             text_chunks.append(' '.join(text))
         return text_chunks
