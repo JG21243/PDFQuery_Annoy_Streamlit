@@ -4,4 +4,4 @@ streamlit==1.2.0
 annoy==1.17.0
 pytesseract==0.3.8
 Pillow
-PyMuPDF
+
