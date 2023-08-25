@@ -1,22 +1,20 @@
-import os
+ import os
 import openai
+import pdfplumber
 import streamlit as st
 from annoy import AnnoyIndex
-import fitz  # PyMuPDF
 
-text_storage = {}  # Added line to define text_storage
+text_storage = {}
 
 def extract_text_from_pdf(file_obj, pages_per_chunk=8):
     try:
         text_chunks = []
-        pdf = fitz.open(stream=file_obj)
-        num_pages = pdf.page_count
+        pdf = pdfplumber.open(file_obj)
+        num_pages = len(pdf.pages)
         for i in range(0, num_pages, pages_per_chunk):
             text = []
             for j in range(i, min(i + pages_per_chunk, num_pages)):
-                page = pdf.load_page(j)
-                ocr_text = page.get_text()  # Extracting text without OCR
-                text.append(ocr_text)
+                text.append(pdf.pages[j].extract_text())
             text_chunks.append(' '.join(text))
         return text_chunks
     except Exception as e:
@@ -126,4 +124,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
