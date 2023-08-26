@@ -26,10 +26,10 @@ def create_openai_embedding(text, max_words=700):
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
     for chunk in chunks:
-        openai_api_key = st.secrets["openai"]["api_key"]
-        response = openai.Embedding.create(
-            model="text-embedding-ada-002",
-            input=chunk
+        openai.api_key = st.secrets["openai"]["api_key"]
+        response = openai.Embed.create(
+            model="text-davinci-002",
+            prompt=chunk
         )
         embeddings.append(response["data"][0]["embedding"])
     embedding = [sum(x) / len(x) for x in zip(*embeddings)]
@@ -55,7 +55,7 @@ def query_annoy(index, question_embedding, top_k=3):
         return {'results': []}
 
 def generate_answer(context_data, question):
-    openai_api_key = st.secrets["openai"]["api_key"]
+    openai.api_key = st.secrets["openai"]["api_key"]
     prompt = f"Context: {', '.join(context_data)}\nQuestion: {question}\nAnswer:"
     
     response = openai.ChatCompletion.create(
@@ -124,3 +124,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
