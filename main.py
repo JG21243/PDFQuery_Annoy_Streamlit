@@ -26,7 +26,7 @@ def create_openai_embedding(text, max_words=700):
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
     for chunk in chunks:
-        openai_api_key = st.secrets["openai_api_key"]
+        openai.api_key = st.secrets["openai"]["api_key"]
         response = openai.Embedding.create(
             model="text-embedding-ada-002",
             input=chunk
