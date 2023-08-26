@@ -70,7 +70,7 @@ def generate_answer(context_data, question):
                 "content": prompt
             }
         ],
-        max_tokens=3000,
+        max_tokens=14000,
         n=1,
         stop=None,
         temperature=0.0,
