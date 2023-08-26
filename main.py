@@ -26,7 +26,6 @@ def create_openai_embedding(text, max_words=700):
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
     for chunk in chunks:
-        openai.api_key = st.secrets["openai"]["api_key"]
         response = openai.Embed.create(
             model="text-davinci-002",
             prompt=chunk
@@ -55,7 +54,6 @@ def query_annoy(index, question_embedding, top_k=3):
         return {'results': []}
 
 def generate_answer(context_data, question):
-    openai.api_key = st.secrets["openai"]["api_key"]
     prompt = f"Context: {', '.join(context_data)}\nQuestion: {question}\nAnswer:"
     
     response = openai.ChatCompletion.create(
@@ -72,7 +70,7 @@ def generate_answer(context_data, question):
         ],
         max_tokens=14000,
         n=1,
-        stop=None,
+        stop="\n",
         temperature=0.0,
     )
     
@@ -100,6 +98,7 @@ def main():
             st.error("An error occurred while reading the PDF file. Please try again with a different file.")
             return
 
+        openai.api_key = st.secrets["openai"]["api_key"]
         index = setup_annoy()
 
         for i, text in enumerate(text_chunks):
@@ -111,7 +110,11 @@ def main():
                 vector_values = response
                 upsert_to_annoy(index, vector_id, vector_values, text)
 
-        index.build(10)  # 10 trees
+        try:
+            index.build(10)  # 10 trees
+        except Exception as e:
+            print(f"Error building Annoy index: {e}")
+            return
 
         question = user_question
         question_embedding = create_openai_embedding(question)
@@ -124,4 +127,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
