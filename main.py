@@ -26,9 +26,9 @@ def create_openai_embedding(text, max_words=700):
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
     for chunk in chunks:
-        response = openai.Embed.create(
-            model="text-davinci-002",
-            prompt=chunk
+        response = openai.Embedding.create(
+            model="text-embedding-ada-002",
+            input=chunk
         )
         embeddings.append(response["data"][0]["embedding"])
     embedding = [sum(x) / len(x) for x in zip(*embeddings)]
