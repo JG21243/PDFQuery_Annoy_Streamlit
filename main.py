@@ -68,7 +68,7 @@ def generate_answer(context_data, question):
                 "content": prompt
             }
         ],
-        max_tokens=10000,
+        max_tokens=1000,
         n=1,
         stop="\n",
         temperature=0.0,
