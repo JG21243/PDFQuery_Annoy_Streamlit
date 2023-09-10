@@ -6,7 +6,7 @@ from annoy import AnnoyIndex
 
 text_storage = {}
 
-def extract_text_from_pdf(file_obj, pages_per_chunk=4):
+def extract_text_from_pdf(file_obj, pages_per_chunk=2):
     try:
         text_chunks = []
         pdf = pdfplumber.open(file_obj)
@@ -21,7 +21,7 @@ def extract_text_from_pdf(file_obj, pages_per_chunk=4):
         print(f"Error opening PDF file: {e}")
         return None
 
-def create_openai_embedding(text, max_words=700):
+def create_openai_embedding(text, max_words=300):
     words = text.split()
     chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
     embeddings = []
@@ -68,7 +68,7 @@ def generate_answer(context_data, question):
                 "content": prompt
             }
         ],
-        max_tokens=1000,
+        max_tokens=3000,
         n=1,
         stop=None,
         temperature=0.0,
