@@ -70,7 +70,7 @@ def generate_answer(context_data, question):
         ],
         max_tokens=1000,
         n=1,
-        stop="\n",
+        stop=None,
         temperature=0.0,
     )
     
