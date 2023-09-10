@@ -43,7 +43,7 @@ def upsert_to_annoy(index, vector_id, vector_values, text):
     text_storage[vector_id] = text
     print(f"Upserted data to index with vector ID {vector_id}")
 
-def query_annoy(index, question_embedding, top_k=3):
+def query_annoy(index, question_embedding, top_k=4):
     try:
         print(f"Querying index with question embedding {question_embedding}")
         query_results = index.get_nns_by_vector(question_embedding, top_k, include_distances=True)
