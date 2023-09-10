@@ -6,7 +6,7 @@ from annoy import AnnoyIndex
 
 text_storage = {}
 
-def extract_text_from_pdf(file_obj, pages_per_chunk=8):
+def extract_text_from_pdf(file_obj, pages_per_chunk=4):
     try:
         text_chunks = []
         pdf = pdfplumber.open(file_obj)
